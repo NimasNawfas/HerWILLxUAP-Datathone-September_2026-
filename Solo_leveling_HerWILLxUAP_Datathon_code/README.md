@@ -1,7 +1,5 @@
 # HerWILL × UAP Datathon 2026 — Toxicity Classification (3 classes, Macro-F1)
 
-**Author:** Md. Mahmudul Kabir Himel (BRAC University) — code submission for the Kaggle competition.
-
 ## What this is
 One self-contained, resumable notebook (`datathon_v3.ipynb`) that reads the raw `train.csv` / `test.csv`, cleans the text,
 trains an **ensemble system** with K-fold out-of-fold (OOF) predictions, stacks it, tunes per-class thresholds and writes the
