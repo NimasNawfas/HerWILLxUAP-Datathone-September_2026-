@@ -1,0 +1,499 @@
+[04:18:29 | +0h02m] INFO  torch 2.11.0+cu128 | device=cuda | GPU=Tesla T4 (14.6 GB)
+[04:18:29 | +0h02m] INFO  work dir: /content/datathon_run | smoke_test=False | hours_left=9.0 | deadline for training stages in 8.30h
+[04:18:35 | +0h02m] INFO  raw train (47817, 3) | raw test (11955, 2) | columns ['id', 'text', 'y']
+[04:18:35 | +0h02m] INFO  raw class balance: Explicitly Toxic=0.497 | Subtly Toxic=0.380 | Non-toxic/Neutral=0.123
+[04:18:36 | +0h02m] INFO  dropping from TRAIN only: empty=0 | >2000 chars=2 | conflicting-label duplicates=78
+[04:18:38 | +0h02m] INFO  cleaned train rows=47,737 | test rows=11,955
+[04:18:38 | +0h02m] INFO  class balance after cleaning: Explicitly Toxic=0.497 | Subtly Toxic=0.380 | Non-toxic/Neutral=0.124
+[04:18:38 | +0h02m] INFO  script mix (train): {'latin': 27565, 'bangla': 19136, 'mixed': 994, 'other': 42}
+[04:18:50 | +0h02m] INFO  ========================================================================================
+[04:18:50 | +0h02m] INFO  STAGE 1 — TF-IDF + calibrated LinearSVC
+[04:18:50 | +0h02m] INFO  ========================================================================================
+[04:18:50 | +0h02m] INFO  SVM config: {"n_folds": "5", "word_ngrams": "(1, 2)", "char_ngrams": "(3, 5)", "max_features_each": "60000", "min_df": "2", "C_grid": "[0.1, 0.3, 1.0]", "class_weight": "balanced", "calibration": "sigmoid (Platt), cv=3"}
+[04:18:58 | +0h02m] INFO     C=0.1: fold-0 Macro-F1 (uncalibrated argmax) = 0.5298
+[04:19:03 | +0h02m] INFO     C=0.3: fold-0 Macro-F1 (uncalibrated argmax) = 0.5281
+[04:19:08 | +0h02m] INFO     C=1.0: fold-0 Macro-F1 (uncalibrated argmax) = 0.5087
+[04:19:08 | +0h02m] INFO  selected C = 0.1
+[04:19:19 | +0h02m] INFO  fold 1/5: features=108,399 | linear-model params≈325,200 (x3 calibrated copies) | holdout Macro-F1=0.5123 | 0.2 min
+[04:19:31 | +0h03m] INFO  fold 2/5: features=108,314 | linear-model params≈324,945 (x3 calibrated copies) | holdout Macro-F1=0.5082 | 0.2 min
+[04:19:43 | +0h03m] INFO  fold 3/5: features=108,672 | linear-model params≈326,019 (x3 calibrated copies) | holdout Macro-F1=0.5031 | 0.2 min
+[04:19:54 | +0h03m] INFO  fold 4/5: features=108,724 | linear-model params≈326,175 (x3 calibrated copies) | holdout Macro-F1=0.5220 | 0.2 min
+[04:20:05 | +0h03m] INFO  fold 5/5: features=108,826 | linear-model params≈326,481 (x3 calibrated copies) | holdout Macro-F1=0.5122 | 0.2 min
+[04:20:05 | +0h03m] INFO  TF-IDF + SVM — full OOF over 47,737 rows: Macro-F1 = 0.5116 | accuracy = 0.5915
+[04:20:05 | +0h03m] INFO     per-class F1: Explicitly Toxic=0.6913 | Subtly Toxic=0.4921 | Non-toxic/Neutral=0.3514
+[04:20:05 | +0h03m] INFO     confusion (rows=true, cols=pred): Explicit:[18433, 5018, 254] || Subtly T:[9257, 8386, 493] || Non-toxi:[1937, 2543, 1416]
+[04:20:25 | +0h03m] INFO  ========================================================================================
+[04:20:25 | +0h03m] INFO  STAGE — XLM-RoBERTa-large (xlm-roberta-large)
+[04:20:25 | +0h03m] INFO  ========================================================================================
+[04:20:25 | +0h03m] INFO  hyper-parameters: {"n_folds": 4, "epochs": 4, "batch_size": 16, "grad_accum": 2, "eval_bs": 64, "max_len": 128, "lr": 2e-05, "llrd": 0.95, "head_lr_mult": 2.0, "weight_decay": 0.01, "warmup_frac": 0.08, "label_smoothing": 0.05, "ema_decay": null, "fgm": false, "fp16": true, "noise_aware": false, "probe": false, "est_min_per_fold": 38}
+[04:20:25 | +0h03m] INFO     time check: 4 folds ≈ 2.53h (estimate) vs 8.27h available
+[04:20:25 | +0h03m] INFO  using 4-fold CV (column fold4)
+[04:20:49 | +0h04m] INFO  tokenized: mean length 21.1 tokens | p99 89 | truncated at 128: 0.30% of rows | vocab=250,002
+[04:21:19 | +0h04m] INFO  PARAMS  XLM-RoBERTa-large    total=   559.9M | trainable=   559.9M | token-embeddings=  256.0M | transformer-layers=  302.8M | head=  1.05M
+[04:21:19 | +0h04m] INFO  LLRD: 26 distinct learning rates from 5.84e-06 (embeddings) to 4.00e-05 (head) | top-layer lr=2.00e-05
+[04:21:19 | +0h04m] INFO  fold 1/4: train rows=35,802 | holdout rows=11,935 | micro-batch=16 x accum=2 (effective 32) | optimizer steps=4,476 (warmup 358) | fp16=True | EMA=None | FGM=False | seed=42
+[04:22:45 | +0h06m] INFO     ep 1/4 step 186/1119 | loss 1.1254 | grad-norm 11.56 | lr(top) 1.04e-05 | 69 samples/s | GPU 6.3/14.6 GB
+[04:24:10 | +0h07m] INFO     ep 1/4 step 372/1119 | loss 1.1009 | grad-norm 16.99 | lr(top) 1.99e-05 | 69 samples/s | GPU 6.3/14.6 GB
+[04:25:31 | +0h09m] INFO     ep 1/4 step 558/1119 | loss 1.0791 | grad-norm 41.59 | lr(top) 1.90e-05 | 71 samples/s | GPU 6.3/14.6 GB
+[04:26:52 | +0h10m] INFO     ep 1/4 step 744/1119 | loss 1.0620 | grad-norm 12.57 | lr(top) 1.81e-05 | 71 samples/s | GPU 6.3/14.6 GB
+[04:28:13 | +0h11m] INFO     ep 1/4 step 930/1119 | loss 1.0487 | grad-norm 16.51 | lr(top) 1.72e-05 | 72 samples/s | GPU 6.3/14.6 GB
+[04:29:33 | +0h13m] INFO     ep 1/4 step 1116/1119 | loss 1.0393 | grad-norm 11.30 | lr(top) 1.63e-05 | 72 samples/s | GPU 6.3/14.6 GB
+[04:29:34 | +0h13m] INFO     ep 1/4 step 1119/1119 | loss 1.0390 | grad-norm 62.63 | lr(top) 1.63e-05 | 72 samples/s | GPU 6.3/14.6 GB
+[04:29:37 | +0h13m] INFO     ── epoch 1/4 done in 8.3 min | train loss 1.0390 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.4755
+[04:30:58 | +0h14m] INFO     ep 2/4 step 186/1119 | loss 0.9464 | grad-norm 11.45 | lr(top) 1.54e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[04:32:20 | +0h15m] INFO     ep 2/4 step 372/1119 | loss 0.9458 | grad-norm 15.63 | lr(top) 1.45e-05 | 73 samples/s | GPU 6.3/14.6 GB
+[04:33:40 | +0h17m] INFO     ep 2/4 step 558/1119 | loss 0.9427 | grad-norm 10.95 | lr(top) 1.36e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[04:35:01 | +0h18m] INFO     ep 2/4 step 744/1119 | loss 0.9407 | grad-norm 18.02 | lr(top) 1.27e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[04:36:22 | +0h19m] INFO     ep 2/4 step 930/1119 | loss 0.9384 | grad-norm 15.90 | lr(top) 1.18e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[04:37:42 | +0h21m] INFO     ep 2/4 step 1116/1119 | loss 0.9351 | grad-norm 17.39 | lr(top) 1.09e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[04:37:43 | +0h21m] INFO     ep 2/4 step 1119/1119 | loss 0.9352 | grad-norm 16.69 | lr(top) 1.09e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[04:37:46 | +0h21m] INFO     ── epoch 2/4 done in 8.1 min | train loss 0.9352 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5461
+[04:39:06 | +0h22m] INFO     ep 3/4 step 186/1119 | loss 0.8858 | grad-norm 16.78 | lr(top) 9.97e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[04:40:27 | +0h23m] INFO     ep 3/4 step 372/1119 | loss 0.8774 | grad-norm 21.78 | lr(top) 9.06e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[04:41:47 | +0h25m] INFO     ep 3/4 step 558/1119 | loss 0.8753 | grad-norm 40.76 | lr(top) 8.16e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[04:43:09 | +0h26m] INFO     ep 3/4 step 744/1119 | loss 0.8718 | grad-norm 14.33 | lr(top) 7.26e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[04:44:29 | +0h28m] INFO     ep 3/4 step 930/1119 | loss 0.8696 | grad-norm 24.05 | lr(top) 6.35e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[04:45:51 | +0h29m] INFO     ep 3/4 step 1116/1119 | loss 0.8691 | grad-norm 20.68 | lr(top) 5.45e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[04:45:53 | +0h29m] INFO     ep 3/4 step 1119/1119 | loss 0.8688 | grad-norm 13.04 | lr(top) 5.43e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[04:45:56 | +0h29m] INFO     ── epoch 3/4 done in 8.2 min | train loss 0.8688 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5822
+[04:47:17 | +0h30m] INFO     ep 4/4 step 186/1119 | loss 0.8268 | grad-norm 30.95 | lr(top) 4.53e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[04:48:38 | +0h32m] INFO     ep 4/4 step 372/1119 | loss 0.8099 | grad-norm 28.71 | lr(top) 3.63e-06 | 73 samples/s | GPU 6.3/14.6 GB
+[04:50:00 | +0h33m] INFO     ep 4/4 step 558/1119 | loss 0.8136 | grad-norm 19.46 | lr(top) 2.72e-06 | 73 samples/s | GPU 6.3/14.6 GB
+[04:51:21 | +0h34m] INFO     ep 4/4 step 744/1119 | loss 0.8144 | grad-norm 24.73 | lr(top) 1.82e-06 | 73 samples/s | GPU 6.3/14.6 GB
+[04:52:41 | +0h36m] INFO     ep 4/4 step 930/1119 | loss 0.8105 | grad-norm 9.38 | lr(top) 9.18e-07 | 73 samples/s | GPU 6.3/14.6 GB
+[04:54:01 | +0h37m] INFO     ep 4/4 step 1116/1119 | loss 0.8100 | grad-norm 16.27 | lr(top) 1.46e-08 | 74 samples/s | GPU 6.3/14.6 GB
+[04:54:03 | +0h37m] INFO     ep 4/4 step 1119/1119 | loss 0.8099 | grad-norm 14.90 | lr(top) 0.00e+00 | 74 samples/s | GPU 6.3/14.6 GB
+[04:54:06 | +0h37m] INFO     ── epoch 4/4 done in 8.2 min | train loss 0.8099 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5817
+[04:54:29 | +0h38m] INFO  FOLD 1/4 RESULT: holdout Macro-F1=0.5727 (Explicit 0.684, Subtly T 0.524, Non-toxi 0.510) | 33.2 min | stage ETA ≈ 100 min | time left 7.70h
+[04:54:33 | +0h38m] INFO  fold 2/4: train rows=35,803 | holdout rows=11,934 | micro-batch=16 x accum=2 (effective 32) | optimizer steps=4,476 (warmup 358) | fp16=True | EMA=None | FGM=False | seed=43
+[04:55:54 | +0h39m] INFO     ep 1/4 step 186/1119 | loss 1.1381 | grad-norm 7.06 | lr(top) 1.04e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[04:57:15 | +0h40m] INFO     ep 1/4 step 372/1119 | loss 1.1103 | grad-norm 19.09 | lr(top) 1.99e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[04:58:35 | +0h42m] INFO     ep 1/4 step 558/1119 | loss 1.0837 | grad-norm 16.56 | lr(top) 1.90e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[04:59:54 | +0h43m] INFO     ep 1/4 step 744/1119 | loss 1.0643 | grad-norm 9.53 | lr(top) 1.81e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:01:15 | +0h44m] INFO     ep 1/4 step 930/1119 | loss 1.0500 | grad-norm 22.76 | lr(top) 1.72e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:02:36 | +0h46m] INFO     ep 1/4 step 1116/1119 | loss 1.0371 | grad-norm 18.45 | lr(top) 1.63e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:02:37 | +0h46m] INFO     ep 1/4 step 1119/1119 | loss 1.0367 | grad-norm 12.10 | lr(top) 1.63e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:02:40 | +0h46m] INFO     ── epoch 1/4 done in 8.1 min | train loss 1.0367 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5537
+[05:04:01 | +0h47m] INFO     ep 2/4 step 186/1119 | loss 0.9402 | grad-norm 11.52 | lr(top) 1.54e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:05:22 | +0h48m] INFO     ep 2/4 step 372/1119 | loss 0.9418 | grad-norm 13.83 | lr(top) 1.45e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:06:42 | +0h50m] INFO     ep 2/4 step 558/1119 | loss 0.9384 | grad-norm 17.43 | lr(top) 1.36e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:08:04 | +0h51m] INFO     ep 2/4 step 744/1119 | loss 0.9364 | grad-norm 12.84 | lr(top) 1.27e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:09:24 | +0h52m] INFO     ep 2/4 step 930/1119 | loss 0.9371 | grad-norm 14.59 | lr(top) 1.18e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:10:45 | +0h54m] INFO     ep 2/4 step 1116/1119 | loss 0.9334 | grad-norm 26.00 | lr(top) 1.09e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:10:46 | +0h54m] INFO     ep 2/4 step 1119/1119 | loss 0.9334 | grad-norm 7.13 | lr(top) 1.09e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:10:49 | +0h54m] INFO     ── epoch 2/4 done in 8.2 min | train loss 0.9334 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5867
+[05:12:10 | +0h55m] INFO     ep 3/4 step 186/1119 | loss 0.8586 | grad-norm 28.83 | lr(top) 9.97e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[05:13:31 | +0h57m] INFO     ep 3/4 step 372/1119 | loss 0.8613 | grad-norm 22.17 | lr(top) 9.06e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[05:14:50 | +0h58m] INFO     ep 3/4 step 558/1119 | loss 0.8595 | grad-norm 15.92 | lr(top) 8.16e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[05:16:12 | +0h59m] INFO     ep 3/4 step 744/1119 | loss 0.8550 | grad-norm 24.13 | lr(top) 7.26e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[05:17:33 | +1h01m] INFO     ep 3/4 step 930/1119 | loss 0.8574 | grad-norm 14.77 | lr(top) 6.35e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[05:18:54 | +1h02m] INFO     ep 3/4 step 1116/1119 | loss 0.8570 | grad-norm 33.97 | lr(top) 5.45e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[05:18:56 | +1h02m] INFO     ep 3/4 step 1119/1119 | loss 0.8569 | grad-norm 13.08 | lr(top) 5.43e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[05:18:59 | +1h02m] INFO     ── epoch 3/4 done in 8.2 min | train loss 0.8569 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5730
+[05:20:20 | +1h03m] INFO     ep 4/4 step 186/1119 | loss 0.8034 | grad-norm 19.79 | lr(top) 4.53e-06 | 73 samples/s | GPU 6.3/14.6 GB
+[05:21:41 | +1h05m] INFO     ep 4/4 step 372/1119 | loss 0.7932 | grad-norm 13.17 | lr(top) 3.63e-06 | 73 samples/s | GPU 6.3/14.6 GB
+[05:23:02 | +1h06m] INFO     ep 4/4 step 558/1119 | loss 0.7969 | grad-norm 11.07 | lr(top) 2.72e-06 | 73 samples/s | GPU 6.3/14.6 GB
+[05:24:22 | +1h07m] INFO     ep 4/4 step 744/1119 | loss 0.7941 | grad-norm 14.36 | lr(top) 1.82e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[05:25:43 | +1h09m] INFO     ep 4/4 step 930/1119 | loss 0.7928 | grad-norm 24.29 | lr(top) 9.18e-07 | 74 samples/s | GPU 6.3/14.6 GB
+[05:27:03 | +1h10m] INFO     ep 4/4 step 1116/1119 | loss 0.7901 | grad-norm 17.14 | lr(top) 1.46e-08 | 74 samples/s | GPU 6.3/14.6 GB
+[05:27:04 | +1h10m] INFO     ep 4/4 step 1119/1119 | loss 0.7901 | grad-norm 29.57 | lr(top) 0.00e+00 | 74 samples/s | GPU 6.3/14.6 GB
+[05:27:07 | +1h10m] INFO     ── epoch 4/4 done in 8.1 min | train loss 0.7901 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5870
+[05:27:31 | +1h11m] INFO  FOLD 2/4 RESULT: holdout Macro-F1=0.5759 (Explicit 0.681, Subtly T 0.534, Non-toxi 0.512) | 33.0 min | stage ETA ≈ 66 min | time left 7.15h
+[05:27:33 | +1h11m] INFO  fold 3/4: train rows=35,803 | holdout rows=11,934 | micro-batch=16 x accum=2 (effective 32) | optimizer steps=4,476 (warmup 358) | fp16=True | EMA=None | FGM=False | seed=44
+[05:28:53 | +1h12m] INFO     ep 1/4 step 186/1119 | loss 1.1317 | grad-norm 14.00 | lr(top) 1.04e-05 | 75 samples/s | GPU 6.3/14.6 GB
+[05:30:13 | +1h13m] INFO     ep 1/4 step 372/1119 | loss 1.1067 | grad-norm 13.72 | lr(top) 1.99e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:31:33 | +1h15m] INFO     ep 1/4 step 558/1119 | loss 1.0793 | grad-norm 25.80 | lr(top) 1.90e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:32:54 | +1h16m] INFO     ep 1/4 step 744/1119 | loss 1.0591 | grad-norm 11.84 | lr(top) 1.81e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:34:15 | +1h17m] INFO     ep 1/4 step 930/1119 | loss 1.0443 | grad-norm 18.78 | lr(top) 1.72e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:35:36 | +1h19m] INFO     ep 1/4 step 1116/1119 | loss 1.0324 | grad-norm 18.69 | lr(top) 1.63e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:35:37 | +1h19m] INFO     ep 1/4 step 1119/1119 | loss 1.0324 | grad-norm 21.01 | lr(top) 1.63e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:35:40 | +1h19m] INFO     ── epoch 1/4 done in 8.1 min | train loss 1.0324 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5205
+[05:37:01 | +1h20m] INFO     ep 2/4 step 186/1119 | loss 0.9316 | grad-norm 12.55 | lr(top) 1.54e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:38:22 | +1h21m] INFO     ep 2/4 step 372/1119 | loss 0.9375 | grad-norm 10.45 | lr(top) 1.45e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:39:42 | +1h23m] INFO     ep 2/4 step 558/1119 | loss 0.9352 | grad-norm 12.69 | lr(top) 1.36e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:41:03 | +1h24m] INFO     ep 2/4 step 744/1119 | loss 0.9333 | grad-norm 10.37 | lr(top) 1.27e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:42:23 | +1h25m] INFO     ep 2/4 step 930/1119 | loss 0.9309 | grad-norm 13.47 | lr(top) 1.18e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:43:44 | +1h27m] INFO     ep 2/4 step 1116/1119 | loss 0.9279 | grad-norm 11.18 | lr(top) 1.09e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:43:45 | +1h27m] INFO     ep 2/4 step 1119/1119 | loss 0.9279 | grad-norm 12.51 | lr(top) 1.09e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[05:43:48 | +1h27m] INFO     ── epoch 2/4 done in 8.1 min | train loss 0.9279 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5461
+[05:45:09 | +1h28m] INFO     ep 3/4 step 186/1119 | loss 0.8588 | grad-norm 13.84 | lr(top) 9.97e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[05:46:31 | +1h30m] INFO     ep 3/4 step 372/1119 | loss 0.8598 | grad-norm 42.46 | lr(top) 9.06e-06 | 73 samples/s | GPU 6.3/14.6 GB
+[05:47:51 | +1h31m] INFO     ep 3/4 step 558/1119 | loss 0.8639 | grad-norm 15.70 | lr(top) 8.16e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[05:49:10 | +1h32m] INFO     ep 3/4 step 744/1119 | loss 0.8639 | grad-norm 14.58 | lr(top) 7.26e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[05:50:30 | +1h34m] INFO     ep 3/4 step 930/1119 | loss 0.8636 | grad-norm 18.43 | lr(top) 6.35e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[05:51:51 | +1h35m] INFO     ep 3/4 step 1116/1119 | loss 0.8630 | grad-norm 20.00 | lr(top) 5.45e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[05:51:52 | +1h35m] INFO     ep 3/4 step 1119/1119 | loss 0.8629 | grad-norm 9.55 | lr(top) 5.43e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[05:51:55 | +1h35m] INFO     ── epoch 3/4 done in 8.1 min | train loss 0.8629 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5612
+[05:53:15 | +1h36m] INFO     ep 4/4 step 186/1119 | loss 0.8052 | grad-norm 24.50 | lr(top) 4.53e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[05:54:37 | +1h38m] INFO     ep 4/4 step 372/1119 | loss 0.8046 | grad-norm 25.60 | lr(top) 3.63e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[05:55:57 | +1h39m] INFO     ep 4/4 step 558/1119 | loss 0.8056 | grad-norm 15.90 | lr(top) 2.72e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[05:57:17 | +1h40m] INFO     ep 4/4 step 744/1119 | loss 0.8027 | grad-norm 27.77 | lr(top) 1.82e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[05:58:38 | +1h42m] INFO     ep 4/4 step 930/1119 | loss 0.8026 | grad-norm 23.13 | lr(top) 9.18e-07 | 74 samples/s | GPU 6.3/14.6 GB
+[05:59:59 | +1h43m] INFO     ep 4/4 step 1116/1119 | loss 0.8043 | grad-norm 19.57 | lr(top) 1.46e-08 | 74 samples/s | GPU 6.3/14.6 GB
+[06:00:00 | +1h43m] INFO     ep 4/4 step 1119/1119 | loss 0.8045 | grad-norm 12.26 | lr(top) 0.00e+00 | 74 samples/s | GPU 6.3/14.6 GB
+[06:00:03 | +1h43m] INFO     ── epoch 4/4 done in 8.1 min | train loss 0.8045 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5696
+[06:00:27 | +1h43m] INFO  FOLD 3/4 RESULT: holdout Macro-F1=0.5764 (Explicit 0.691, Subtly T 0.518, Non-toxi 0.520) | 32.9 min | stage ETA ≈ 33 min | time left 6.60h
+[06:00:28 | +1h44m] INFO  fold 4/4: train rows=35,803 | holdout rows=11,934 | micro-batch=16 x accum=2 (effective 32) | optimizer steps=4,476 (warmup 358) | fp16=True | EMA=None | FGM=False | seed=45
+[06:01:49 | +1h45m] INFO     ep 1/4 step 186/1119 | loss 1.1233 | grad-norm 7.64 | lr(top) 1.04e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[06:03:10 | +1h46m] INFO     ep 1/4 step 372/1119 | loss 1.1129 | grad-norm 18.61 | lr(top) 1.99e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[06:04:31 | +1h48m] INFO     ep 1/4 step 558/1119 | loss 1.0889 | grad-norm 31.67 | lr(top) 1.90e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[06:05:51 | +1h49m] INFO     ep 1/4 step 744/1119 | loss 1.0696 | grad-norm 16.34 | lr(top) 1.81e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[06:07:12 | +1h50m] INFO     ep 1/4 step 930/1119 | loss 1.0557 | grad-norm 19.89 | lr(top) 1.72e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[06:08:33 | +1h52m] INFO     ep 1/4 step 1116/1119 | loss 1.0446 | grad-norm 8.39 | lr(top) 1.63e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[06:08:34 | +1h52m] INFO     ep 1/4 step 1119/1119 | loss 1.0444 | grad-norm 10.58 | lr(top) 1.63e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[06:08:38 | +1h52m] INFO     ── epoch 1/4 done in 8.2 min | train loss 1.0444 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.4618
+[06:09:59 | +1h53m] INFO     ep 2/4 step 186/1119 | loss 0.9354 | grad-norm 22.99 | lr(top) 1.54e-05 | 73 samples/s | GPU 6.3/14.6 GB
+[06:11:20 | +1h54m] INFO     ep 2/4 step 372/1119 | loss 0.9322 | grad-norm 28.12 | lr(top) 1.45e-05 | 73 samples/s | GPU 6.3/14.6 GB
+[06:12:41 | +1h56m] INFO     ep 2/4 step 558/1119 | loss 0.9345 | grad-norm 13.47 | lr(top) 1.36e-05 | 73 samples/s | GPU 6.3/14.6 GB
+[06:14:02 | +1h57m] INFO     ep 2/4 step 744/1119 | loss 0.9310 | grad-norm 42.05 | lr(top) 1.27e-05 | 73 samples/s | GPU 6.3/14.6 GB
+[06:15:23 | +1h58m] INFO     ep 2/4 step 930/1119 | loss 0.9284 | grad-norm 8.37 | lr(top) 1.18e-05 | 73 samples/s | GPU 6.3/14.6 GB
+[06:16:43 | +2h00m] INFO     ep 2/4 step 1116/1119 | loss 0.9297 | grad-norm 16.79 | lr(top) 1.09e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[06:16:44 | +2h00m] INFO     ep 2/4 step 1119/1119 | loss 0.9296 | grad-norm 14.03 | lr(top) 1.09e-05 | 74 samples/s | GPU 6.3/14.6 GB
+[06:16:47 | +2h00m] INFO     ── epoch 2/4 done in 8.2 min | train loss 0.9296 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5575
+[06:18:08 | +2h01m] INFO     ep 3/4 step 186/1119 | loss 0.8628 | grad-norm 23.30 | lr(top) 9.97e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[06:19:28 | +2h03m] INFO     ep 3/4 step 372/1119 | loss 0.8642 | grad-norm 15.13 | lr(top) 9.06e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[06:20:49 | +2h04m] INFO     ep 3/4 step 558/1119 | loss 0.8623 | grad-norm 17.33 | lr(top) 8.16e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[06:22:10 | +2h05m] INFO     ep 3/4 step 744/1119 | loss 0.8618 | grad-norm 17.48 | lr(top) 7.26e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[06:23:30 | +2h07m] INFO     ep 3/4 step 930/1119 | loss 0.8616 | grad-norm 54.41 | lr(top) 6.35e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[06:24:52 | +2h08m] INFO     ep 3/4 step 1116/1119 | loss 0.8604 | grad-norm 11.27 | lr(top) 5.45e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[06:24:53 | +2h08m] INFO     ep 3/4 step 1119/1119 | loss 0.8600 | grad-norm 13.54 | lr(top) 5.43e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[06:24:56 | +2h08m] INFO     ── epoch 3/4 done in 8.1 min | train loss 0.8600 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5682
+[06:26:17 | +2h09m] INFO     ep 4/4 step 186/1119 | loss 0.7885 | grad-norm 13.92 | lr(top) 4.53e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[06:27:38 | +2h11m] INFO     ep 4/4 step 372/1119 | loss 0.7980 | grad-norm 16.94 | lr(top) 3.63e-06 | 74 samples/s | GPU 6.3/14.6 GB
+[06:28:59 | +2h12m] INFO     ep 4/4 step 558/1119 | loss 0.7983 | grad-norm 24.91 | lr(top) 2.72e-06 | 73 samples/s | GPU 6.3/14.6 GB
+[06:30:20 | +2h13m] INFO     ep 4/4 step 744/1119 | loss 0.7989 | grad-norm 66.70 | lr(top) 1.82e-06 | 73 samples/s | GPU 6.3/14.6 GB
+[06:31:41 | +2h15m] INFO     ep 4/4 step 930/1119 | loss 0.7941 | grad-norm 26.22 | lr(top) 9.18e-07 | 74 samples/s | GPU 6.3/14.6 GB
+[06:33:01 | +2h16m] INFO     ep 4/4 step 1116/1119 | loss 0.7950 | grad-norm 43.96 | lr(top) 1.46e-08 | 74 samples/s | GPU 6.3/14.6 GB
+[06:33:03 | +2h16m] INFO     ep 4/4 step 1119/1119 | loss 0.7951 | grad-norm 10.92 | lr(top) 0.00e+00 | 74 samples/s | GPU 6.3/14.6 GB
+[06:33:06 | +2h16m] INFO     ── epoch 4/4 done in 8.2 min | train loss 0.7951 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5724
+[06:33:29 | +2h17m] INFO  FOLD 4/4 RESULT: holdout Macro-F1=0.5670 (Explicit 0.685, Subtly T 0.509, Non-toxi 0.506) | 33.0 min | stage ETA ≈ 0 min | time left 6.05h
+[06:33:29 | +2h17m] INFO  XLM-RoBERTa-large — full OOF over 47,737 rows: Macro-F1 = 0.5730 | accuracy = 0.5999
+[06:33:29 | +2h17m] INFO     per-class F1: Explicitly Toxic=0.6854 | Subtly Toxic=0.5215 | Non-toxic/Neutral=0.5122
+[06:33:29 | +2h17m] INFO     confusion (rows=true, cols=pred): Explicit:[15915, 6144, 1646] || Subtly T:[6107, 9125, 2904] || Non-toxi:[713, 1587, 3596]
+[06:33:30 | +2h17m] INFO  ========================================================================================
+[06:33:30 | +2h17m] INFO  STAGE — MuRIL-base-cased (google/muril-base-cased)
+[06:33:30 | +2h17m] INFO  ========================================================================================
+[06:33:30 | +2h17m] INFO  hyper-parameters: {"n_folds": 5, "epochs": 3, "batch_size": 32, "grad_accum": 1, "eval_bs": 128, "max_len": 128, "lr": 3e-05, "llrd": 0.9, "head_lr_mult": 2.0, "weight_decay": 0.01, "warmup_frac": 0.08, "label_smoothing": 0.05, "ema_decay": 0.999, "fgm": false, "fp16": true, "noise_aware": true, "probe": false, "est_min_per_fold": 13}
+[06:33:30 | +2h17m] INFO     time check: 5 folds ≈ 1.08h (estimate) vs 6.05h available
+[06:33:30 | +2h17m] INFO  using 5-fold CV (column fold5)
+[06:33:35 | +2h17m] INFO  tokenized: mean length 19.0 tokens | p99 83 | truncated at 128: 0.25% of rows | vocab=197,258
+[06:33:35 | +2h17m] INFO  noise weights from 1 complete OOF model(s): 2590 rows (5.4%) down-weighted to 0.3
+[06:33:35 | +2h17m] INFO     flagged rows by given label: {'Explicitly Toxic': 1034, 'Subtly Toxic': 1254, 'Non-toxic/Neutral': 302}
+[06:33:35 | +2h17m] INFO     e.g. label='Explicitly Toxic' model says 'Non-toxic/Neutral' (0.99): 'She is courageous sharing a story that’s extremely personal. Respect.'
+[06:33:35 | +2h17m] INFO     e.g. label='Explicitly Toxic' model says 'Non-toxic/Neutral' (0.99): 'Awesome! The absolute truth!'
+[06:33:35 | +2h17m] INFO     e.g. label='Explicitly Toxic' model says 'Non-toxic/Neutral' (0.98): 'The UK sitcom continues! You guys are really putting on a great show for the rest of us, k'
+[06:33:35 | +2h17m] INFO     e.g. label='Explicitly Toxic' model says 'Non-toxic/Neutral' (0.99): 'This made my day!! Happy happy joy joy happy happy joy joy'
+[06:33:35 | +2h17m] INFO     e.g. label='Subtly Toxic' model says 'Non-toxic/Neutral' (0.99): 'I’m a former marine and now a plumber and Lana del ray is probably my favorite artist.'
+[06:33:35 | +2h17m] INFO     e.g. label='Explicitly Toxic' model says 'Non-toxic/Neutral' (0.99): 'you are a Karen he is amazing'
+[06:33:54 | +2h17m] INFO  PARAMS  MuRIL-base-cased     total=   237.6M | trainable=   237.6M | token-embeddings=  151.5M | transformer-layers=   85.5M | head=  0.59M
+[06:33:54 | +2h17m] INFO  LLRD: 14 distinct learning rates from 8.47e-06 (embeddings) to 6.00e-05 (head) | top-layer lr=3.00e-05
+[06:33:54 | +2h17m] INFO  fold 1/5: train rows=38,189 | holdout rows=9,548 | micro-batch=32 x accum=1 (effective 32) | optimizer steps=3,582 (warmup 286) | fp16=True | EMA=0.999 | FGM=False | seed=42
+[06:34:30 | +2h18m] INFO     ep 1/3 step 199/1194 | loss 1.1212 | grad-norm 0.24 | lr(top) 4.20e-05 | 178 samples/s | GPU 3.6/14.6 GB
+[06:35:03 | +2h18m] INFO     ep 1/3 step 398/1194 | loss 1.0937 | grad-norm 1.54 | lr(top) 5.80e-05 | 184 samples/s | GPU 3.6/14.6 GB
+[06:35:36 | +2h19m] INFO     ep 1/3 step 597/1194 | loss 1.0665 | grad-norm 7.60 | lr(top) 5.43e-05 | 188 samples/s | GPU 3.6/14.6 GB
+[06:36:09 | +2h19m] INFO     ep 1/3 step 796/1194 | loss 1.0462 | grad-norm 7.46 | lr(top) 5.07e-05 | 189 samples/s | GPU 3.6/14.6 GB
+[06:36:42 | +2h20m] INFO     ep 1/3 step 995/1194 | loss 1.0285 | grad-norm 7.21 | lr(top) 4.71e-05 | 190 samples/s | GPU 3.6/14.6 GB
+[06:37:15 | +2h20m] INFO     ep 1/3 step 1194/1194 | loss 1.0177 | grad-norm 4.60 | lr(top) 4.35e-05 | 190 samples/s | GPU 3.6/14.6 GB
+[06:37:16 | +2h20m] INFO     ── epoch 1/3 done in 3.4 min | train loss 1.0177 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5133
+[06:37:49 | +2h21m] INFO     ep 2/3 step 199/1194 | loss 0.9040 | grad-norm 11.52 | lr(top) 3.98e-05 | 194 samples/s | GPU 3.6/14.6 GB
+[06:38:22 | +2h21m] INFO     ep 2/3 step 398/1194 | loss 0.9034 | grad-norm 4.56 | lr(top) 3.62e-05 | 192 samples/s | GPU 3.6/14.6 GB
+[06:38:56 | +2h22m] INFO     ep 2/3 step 597/1194 | loss 0.9019 | grad-norm 5.71 | lr(top) 3.26e-05 | 192 samples/s | GPU 3.6/14.6 GB
+[06:39:29 | +2h23m] INFO     ep 2/3 step 796/1194 | loss 0.9006 | grad-norm 6.17 | lr(top) 2.90e-05 | 192 samples/s | GPU 3.6/14.6 GB
+[06:40:01 | +2h23m] INFO     ep 2/3 step 995/1194 | loss 0.8953 | grad-norm 5.46 | lr(top) 2.54e-05 | 193 samples/s | GPU 3.6/14.6 GB
+[06:40:34 | +2h24m] INFO     ep 2/3 step 1194/1194 | loss 0.8915 | grad-norm 5.06 | lr(top) 2.17e-05 | 193 samples/s | GPU 3.6/14.6 GB
+[06:40:35 | +2h24m] INFO     ── epoch 2/3 done in 3.3 min | train loss 0.8915 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5266
+[06:41:07 | +2h24m] INFO     ep 3/3 step 199/1194 | loss 0.8217 | grad-norm 10.36 | lr(top) 1.81e-05 | 195 samples/s | GPU 3.6/14.6 GB
+[06:41:41 | +2h25m] INFO     ep 3/3 step 398/1194 | loss 0.8266 | grad-norm 7.90 | lr(top) 1.45e-05 | 194 samples/s | GPU 3.6/14.6 GB
+[06:42:13 | +2h25m] INFO     ep 3/3 step 597/1194 | loss 0.8219 | grad-norm 7.07 | lr(top) 1.09e-05 | 194 samples/s | GPU 3.6/14.6 GB
+[06:42:46 | +2h26m] INFO     ep 3/3 step 796/1194 | loss 0.8245 | grad-norm 20.57 | lr(top) 7.25e-06 | 194 samples/s | GPU 3.6/14.6 GB
+[06:43:19 | +2h26m] INFO     ep 3/3 step 995/1194 | loss 0.8236 | grad-norm 5.12 | lr(top) 3.62e-06 | 193 samples/s | GPU 3.6/14.6 GB
+[06:43:52 | +2h27m] INFO     ep 3/3 step 1194/1194 | loss 0.8221 | grad-norm 8.35 | lr(top) 0.00e+00 | 193 samples/s | GPU 3.6/14.6 GB
+[06:43:53 | +2h27m] INFO     ── epoch 3/3 done in 3.3 min | train loss 0.8221 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5609
+[06:43:55 | +2h27m] INFO     EMA check on holdout subsample: raw-weights F1=0.5609 | EMA-weights F1=0.5647 (EMA weights are used)
+[06:44:01 | +2h27m] INFO  FOLD 1/5 RESULT: holdout Macro-F1=0.5543 (Explicit 0.677, Subtly T 0.508, Non-toxi 0.477) | 10.1 min | stage ETA ≈ 40 min | time left 5.87h
+[06:44:05 | +2h27m] INFO  fold 2/5: train rows=38,189 | holdout rows=9,548 | micro-batch=32 x accum=1 (effective 32) | optimizer steps=3,582 (warmup 286) | fp16=True | EMA=0.999 | FGM=False | seed=43
+[06:44:38 | +2h28m] INFO     ep 1/3 step 199/1194 | loss 1.1219 | grad-norm 0.24 | lr(top) 4.20e-05 | 194 samples/s | GPU 3.6/14.6 GB
+[06:45:11 | +2h28m] INFO     ep 1/3 step 398/1194 | loss 1.0878 | grad-norm 2.77 | lr(top) 5.80e-05 | 193 samples/s | GPU 3.6/14.6 GB
+[06:45:44 | +2h29m] INFO     ep 1/3 step 597/1194 | loss 1.0526 | grad-norm 2.85 | lr(top) 5.43e-05 | 193 samples/s | GPU 3.6/14.6 GB
+[06:46:17 | +2h29m] INFO     ep 1/3 step 796/1194 | loss 1.0356 | grad-norm 9.33 | lr(top) 5.07e-05 | 194 samples/s | GPU 3.6/14.6 GB
+[06:46:50 | +2h30m] INFO     ep 1/3 step 995/1194 | loss 1.0203 | grad-norm 7.63 | lr(top) 4.71e-05 | 193 samples/s | GPU 3.6/14.6 GB
+[06:47:23 | +2h30m] INFO     ep 1/3 step 1194/1194 | loss 1.0089 | grad-norm 5.51 | lr(top) 4.35e-05 | 193 samples/s | GPU 3.6/14.6 GB
+[06:47:24 | +2h30m] INFO     ── epoch 1/3 done in 3.3 min | train loss 1.0089 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.4837
+[06:47:57 | +2h31m] INFO     ep 2/3 step 199/1194 | loss 0.8933 | grad-norm 3.70 | lr(top) 3.98e-05 | 191 samples/s | GPU 3.6/14.6 GB
+[06:48:30 | +2h32m] INFO     ep 2/3 step 398/1194 | loss 0.8902 | grad-norm 10.97 | lr(top) 3.62e-05 | 193 samples/s | GPU 3.6/14.6 GB
+[06:49:03 | +2h32m] INFO     ep 2/3 step 597/1194 | loss 0.8907 | grad-norm 8.61 | lr(top) 3.26e-05 | 193 samples/s | GPU 3.6/14.6 GB
+[06:49:36 | +2h33m] INFO     ep 2/3 step 796/1194 | loss 0.8871 | grad-norm 5.20 | lr(top) 2.90e-05 | 193 samples/s | GPU 3.6/14.6 GB
+[06:50:09 | +2h33m] INFO     ep 2/3 step 995/1194 | loss 0.8865 | grad-norm 4.71 | lr(top) 2.54e-05 | 193 samples/s | GPU 3.6/14.6 GB
+[06:50:42 | +2h34m] INFO     ep 2/3 step 1194/1194 | loss 0.8858 | grad-norm 11.72 | lr(top) 2.17e-05 | 193 samples/s | GPU 3.6/14.6 GB
+[06:50:42 | +2h34m] INFO     ── epoch 2/3 done in 3.3 min | train loss 0.8858 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5349
+[06:51:15 | +2h34m] INFO     ep 3/3 step 199/1194 | loss 0.8265 | grad-norm 11.60 | lr(top) 1.81e-05 | 194 samples/s | GPU 3.6/14.6 GB
+[06:51:48 | +2h35m] INFO     ep 3/3 step 398/1194 | loss 0.8250 | grad-norm 7.04 | lr(top) 1.45e-05 | 194 samples/s | GPU 3.6/14.6 GB
+[06:52:21 | +2h35m] INFO     ep 3/3 step 597/1194 | loss 0.8236 | grad-norm 9.73 | lr(top) 1.09e-05 | 194 samples/s | GPU 3.6/14.6 GB
+[06:52:54 | +2h36m] INFO     ep 3/3 step 796/1194 | loss 0.8217 | grad-norm 13.08 | lr(top) 7.25e-06 | 194 samples/s | GPU 3.6/14.6 GB
+[06:53:27 | +2h36m] INFO     ep 3/3 step 995/1194 | loss 0.8156 | grad-norm 14.78 | lr(top) 3.62e-06 | 193 samples/s | GPU 3.6/14.6 GB
+[06:54:01 | +2h37m] INFO     ep 3/3 step 1194/1194 | loss 0.8164 | grad-norm 9.34 | lr(top) 0.00e+00 | 192 samples/s | GPU 3.6/14.6 GB
+[06:54:02 | +2h37m] INFO     ── epoch 3/3 done in 3.3 min | train loss 0.8164 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5412
+[06:54:04 | +2h37m] INFO     EMA check on holdout subsample: raw-weights F1=0.5412 | EMA-weights F1=0.5418 (EMA weights are used)
+[06:54:10 | +2h37m] INFO  FOLD 2/5 RESULT: holdout Macro-F1=0.5482 (Explicit 0.665, Subtly T 0.508, Non-toxi 0.471) | 10.1 min | stage ETA ≈ 30 min | time left 5.70h
+[06:54:11 | +2h37m] INFO  fold 3/5: train rows=38,190 | holdout rows=9,547 | micro-batch=32 x accum=1 (effective 32) | optimizer steps=3,582 (warmup 286) | fp16=True | EMA=0.999 | FGM=False | seed=44
+[06:54:44 | +2h38m] INFO     ep 1/3 step 199/1194 | loss 1.1226 | grad-norm 0.24 | lr(top) 4.20e-05 | 191 samples/s | GPU 3.6/14.6 GB
+[06:55:18 | +2h38m] INFO     ep 1/3 step 398/1194 | loss 1.0853 | grad-norm 3.42 | lr(top) 5.80e-05 | 192 samples/s | GPU 3.6/14.6 GB
+[06:55:50 | +2h39m] INFO     ep 1/3 step 597/1194 | loss 1.0570 | grad-norm 3.24 | lr(top) 5.43e-05 | 192 samples/s | GPU 3.6/14.6 GB
+[06:56:24 | +2h39m] INFO     ep 1/3 step 796/1194 | loss 1.0369 | grad-norm 3.50 | lr(top) 5.07e-05 | 192 samples/s | GPU 3.6/14.6 GB
+[06:56:56 | +2h40m] INFO     ep 1/3 step 995/1194 | loss 1.0235 | grad-norm 3.09 | lr(top) 4.71e-05 | 192 samples/s | GPU 3.6/14.6 GB
+[06:57:30 | +2h41m] INFO     ep 1/3 step 1194/1194 | loss 1.0079 | grad-norm 5.71 | lr(top) 4.35e-05 | 192 samples/s | GPU 3.6/14.6 GB
+[06:57:31 | +2h41m] INFO     ── epoch 1/3 done in 3.3 min | train loss 1.0079 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5319
+[06:58:04 | +2h41m] INFO     ep 2/3 step 199/1194 | loss 0.8919 | grad-norm 4.78 | lr(top) 3.98e-05 | 196 samples/s | GPU 3.6/14.6 GB
+[06:58:36 | +2h42m] INFO     ep 2/3 step 398/1194 | loss 0.8894 | grad-norm 6.33 | lr(top) 3.62e-05 | 194 samples/s | GPU 3.6/14.6 GB
+[06:59:09 | +2h42m] INFO     ep 2/3 step 597/1194 | loss 0.8885 | grad-norm 6.47 | lr(top) 3.26e-05 | 194 samples/s | GPU 3.6/14.6 GB
+[06:59:43 | +2h43m] INFO     ep 2/3 step 796/1194 | loss 0.8862 | grad-norm 5.72 | lr(top) 2.90e-05 | 193 samples/s | GPU 3.6/14.6 GB
+[07:00:16 | +2h43m] INFO     ep 2/3 step 995/1194 | loss 0.8856 | grad-norm 3.65 | lr(top) 2.54e-05 | 193 samples/s | GPU 3.6/14.6 GB
+[07:00:49 | +2h44m] INFO     ep 2/3 step 1194/1194 | loss 0.8830 | grad-norm 7.60 | lr(top) 2.17e-05 | 193 samples/s | GPU 3.6/14.6 GB
+[07:00:50 | +2h44m] INFO     ── epoch 2/3 done in 3.3 min | train loss 0.8830 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5138
+[07:01:23 | +2h44m] INFO     ep 3/3 step 199/1194 | loss 0.8259 | grad-norm 10.67 | lr(top) 1.81e-05 | 195 samples/s | GPU 3.6/14.6 GB
+[07:01:56 | +2h45m] INFO     ep 3/3 step 398/1194 | loss 0.8183 | grad-norm 7.47 | lr(top) 1.45e-05 | 194 samples/s | GPU 3.6/14.6 GB
+[07:02:29 | +2h46m] INFO     ep 3/3 step 597/1194 | loss 0.8134 | grad-norm 8.49 | lr(top) 1.09e-05 | 194 samples/s | GPU 3.6/14.6 GB
+[07:03:01 | +2h46m] INFO     ep 3/3 step 796/1194 | loss 0.8122 | grad-norm 8.62 | lr(top) 7.25e-06 | 194 samples/s | GPU 3.6/14.6 GB
+[07:03:34 | +2h47m] INFO     ep 3/3 step 995/1194 | loss 0.8140 | grad-norm 8.48 | lr(top) 3.62e-06 | 194 samples/s | GPU 3.6/14.6 GB
+[07:04:07 | +2h47m] INFO     ep 3/3 step 1194/1194 | loss 0.8114 | grad-norm 12.02 | lr(top) 0.00e+00 | 194 samples/s | GPU 3.6/14.6 GB
+[07:04:08 | +2h47m] INFO     ── epoch 3/3 done in 3.3 min | train loss 0.8114 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5337
+[07:04:10 | +2h47m] INFO     EMA check on holdout subsample: raw-weights F1=0.5337 | EMA-weights F1=0.5356 (EMA weights are used)
+[07:04:16 | +2h47m] INFO  FOLD 3/5 RESULT: holdout Macro-F1=0.5390 (Explicit 0.658, Subtly T 0.488, Non-toxi 0.471) | 10.1 min | stage ETA ≈ 20 min | time left 5.54h
+[07:04:18 | +2h47m] INFO  fold 4/5: train rows=38,190 | holdout rows=9,547 | micro-batch=32 x accum=1 (effective 32) | optimizer steps=3,582 (warmup 286) | fp16=True | EMA=0.999 | FGM=False | seed=45
+[07:04:51 | +2h48m] INFO     ep 1/3 step 199/1194 | loss 1.1217 | grad-norm 0.36 | lr(top) 4.20e-05 | 193 samples/s | GPU 3.6/14.6 GB
+[07:05:24 | +2h48m] INFO     ep 1/3 step 398/1194 | loss 1.0940 | grad-norm 4.56 | lr(top) 5.80e-05 | 192 samples/s | GPU 3.6/14.6 GB
+[07:05:57 | +2h49m] INFO     ep 1/3 step 597/1194 | loss 1.0678 | grad-norm 2.39 | lr(top) 5.43e-05 | 192 samples/s | GPU 3.6/14.6 GB
+[07:06:30 | +2h50m] INFO     ep 1/3 step 796/1194 | loss 1.0454 | grad-norm 5.66 | lr(top) 5.07e-05 | 192 samples/s | GPU 3.6/14.6 GB
+[07:07:03 | +2h50m] INFO     ep 1/3 step 995/1194 | loss 1.0306 | grad-norm 3.24 | lr(top) 4.71e-05 | 193 samples/s | GPU 3.6/14.6 GB
+[07:07:36 | +2h51m] INFO     ep 1/3 step 1194/1194 | loss 1.0166 | grad-norm 6.04 | lr(top) 4.35e-05 | 192 samples/s | GPU 3.6/14.6 GB
+[07:07:37 | +2h51m] INFO     ── epoch 1/3 done in 3.3 min | train loss 1.0166 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5208
+[07:08:10 | +2h51m] INFO     ep 2/3 step 199/1194 | loss 0.8965 | grad-norm 8.15 | lr(top) 3.98e-05 | 193 samples/s | GPU 3.6/14.6 GB
+[07:08:44 | +2h52m] INFO     ep 2/3 step 398/1194 | loss 0.8939 | grad-norm 4.84 | lr(top) 3.62e-05 | 191 samples/s | GPU 3.6/14.6 GB
+[07:09:17 | +2h52m] INFO     ep 2/3 step 597/1194 | loss 0.8938 | grad-norm 11.96 | lr(top) 3.26e-05 | 191 samples/s | GPU 3.6/14.6 GB
+[07:09:50 | +2h53m] INFO     ep 2/3 step 796/1194 | loss 0.8901 | grad-norm 11.08 | lr(top) 2.90e-05 | 192 samples/s | GPU 3.6/14.6 GB
+[07:10:23 | +2h53m] INFO     ep 2/3 step 995/1194 | loss 0.8904 | grad-norm 18.16 | lr(top) 2.54e-05 | 192 samples/s | GPU 3.6/14.6 GB
+[07:10:57 | +2h54m] INFO     ep 2/3 step 1194/1194 | loss 0.8892 | grad-norm 7.14 | lr(top) 2.17e-05 | 191 samples/s | GPU 3.6/14.6 GB
+[07:10:57 | +2h54m] INFO     ── epoch 2/3 done in 3.3 min | train loss 0.8892 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5541
+[07:11:31 | +2h55m] INFO     ep 3/3 step 199/1194 | loss 0.8103 | grad-norm 4.64 | lr(top) 1.81e-05 | 192 samples/s | GPU 3.6/14.6 GB
+[07:12:04 | +2h55m] INFO     ep 3/3 step 398/1194 | loss 0.8130 | grad-norm 5.83 | lr(top) 1.45e-05 | 192 samples/s | GPU 3.6/14.6 GB
+[07:12:37 | +2h56m] INFO     ep 3/3 step 597/1194 | loss 0.8162 | grad-norm 10.21 | lr(top) 1.09e-05 | 191 samples/s | GPU 3.6/14.6 GB
+[07:13:10 | +2h56m] INFO     ep 3/3 step 796/1194 | loss 0.8133 | grad-norm 6.94 | lr(top) 7.25e-06 | 192 samples/s | GPU 3.6/14.6 GB
+[07:13:44 | +2h57m] INFO     ep 3/3 step 995/1194 | loss 0.8138 | grad-norm 16.80 | lr(top) 3.62e-06 | 191 samples/s | GPU 3.6/14.6 GB
+[07:14:17 | +2h57m] INFO     ep 3/3 step 1194/1194 | loss 0.8159 | grad-norm 10.11 | lr(top) 0.00e+00 | 191 samples/s | GPU 3.6/14.6 GB
+[07:14:18 | +2h57m] INFO     ── epoch 3/3 done in 3.3 min | train loss 0.8159 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5563
+[07:14:20 | +2h57m] INFO     EMA check on holdout subsample: raw-weights F1=0.5563 | EMA-weights F1=0.5573 (EMA weights are used)
+[07:14:26 | +2h57m] INFO  FOLD 4/5 RESULT: holdout Macro-F1=0.5582 (Explicit 0.665, Subtly T 0.507, Non-toxi 0.502) | 10.1 min | stage ETA ≈ 10 min | time left 5.37h
+[07:14:27 | +2h57m] INFO  fold 5/5: train rows=38,190 | holdout rows=9,547 | micro-batch=32 x accum=1 (effective 32) | optimizer steps=3,582 (warmup 286) | fp16=True | EMA=0.999 | FGM=False | seed=46
+[07:15:00 | +2h58m] INFO     ep 1/3 step 199/1194 | loss 1.1208 | grad-norm 0.64 | lr(top) 4.20e-05 | 190 samples/s | GPU 3.6/14.6 GB
+[07:15:37 | +2h59m] INFO     ep 1/3 step 398/1194 | loss 1.0884 | grad-norm 8.26 | lr(top) 5.80e-05 | 181 samples/s | GPU 3.6/14.6 GB
+[07:16:21 | +2h59m] INFO     ep 1/3 step 597/1194 | loss 1.0634 | grad-norm 10.38 | lr(top) 5.43e-05 | 167 samples/s | GPU 3.6/14.6 GB
+[07:16:57 | +3h00m] INFO     ep 1/3 step 796/1194 | loss 1.0451 | grad-norm inf | lr(top) 5.07e-05 | 169 samples/s | GPU 3.6/14.6 GB
+[07:17:30 | +3h01m] INFO     ep 1/3 step 995/1194 | loss 1.0274 | grad-norm 6.59 | lr(top) 4.71e-05 | 174 samples/s | GPU 3.6/14.6 GB
+[07:18:03 | +3h01m] INFO     ep 1/3 step 1194/1194 | loss 1.0122 | grad-norm 6.44 | lr(top) 4.35e-05 | 176 samples/s | GPU 3.6/14.6 GB
+[07:18:04 | +3h01m] INFO     ── epoch 1/3 done in 3.6 min | train loss 1.0122 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5265
+[07:18:37 | +3h02m] INFO     ep 2/3 step 199/1194 | loss 0.9041 | grad-norm 4.47 | lr(top) 3.98e-05 | 193 samples/s | GPU 3.6/14.6 GB
+[07:19:11 | +3h02m] INFO     ep 2/3 step 398/1194 | loss 0.9025 | grad-norm 7.93 | lr(top) 3.62e-05 | 192 samples/s | GPU 3.6/14.6 GB
+[07:19:44 | +3h03m] INFO     ep 2/3 step 597/1194 | loss 0.8909 | grad-norm 7.40 | lr(top) 3.26e-05 | 192 samples/s | GPU 3.6/14.6 GB
+[07:20:17 | +3h03m] INFO     ep 2/3 step 796/1194 | loss 0.8910 | grad-norm 4.16 | lr(top) 2.90e-05 | 193 samples/s | GPU 3.6/14.6 GB
+[07:20:50 | +3h04m] INFO     ep 2/3 step 995/1194 | loss 0.8901 | grad-norm 4.30 | lr(top) 2.54e-05 | 192 samples/s | GPU 3.6/14.6 GB
+[07:21:23 | +3h04m] INFO     ep 2/3 step 1194/1194 | loss 0.8860 | grad-norm 6.11 | lr(top) 2.17e-05 | 192 samples/s | GPU 3.6/14.6 GB
+[07:21:24 | +3h04m] INFO     ── epoch 2/3 done in 3.3 min | train loss 0.8860 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5493
+[07:21:58 | +3h05m] INFO     ep 3/3 step 199/1194 | loss 0.8136 | grad-norm 6.58 | lr(top) 1.81e-05 | 191 samples/s | GPU 3.6/14.6 GB
+[07:22:31 | +3h06m] INFO     ep 3/3 step 398/1194 | loss 0.8100 | grad-norm 7.87 | lr(top) 1.45e-05 | 192 samples/s | GPU 3.6/14.6 GB
+[07:23:04 | +3h06m] INFO     ep 3/3 step 597/1194 | loss 0.8140 | grad-norm 12.46 | lr(top) 1.09e-05 | 192 samples/s | GPU 3.6/14.6 GB
+[07:23:37 | +3h07m] INFO     ep 3/3 step 796/1194 | loss 0.8130 | grad-norm 6.11 | lr(top) 7.25e-06 | 192 samples/s | GPU 3.6/14.6 GB
+[07:24:10 | +3h07m] INFO     ep 3/3 step 995/1194 | loss 0.8114 | grad-norm 9.07 | lr(top) 3.62e-06 | 192 samples/s | GPU 3.6/14.6 GB
+[07:24:43 | +3h08m] INFO     ep 3/3 step 1194/1194 | loss 0.8113 | grad-norm 8.29 | lr(top) 0.00e+00 | 192 samples/s | GPU 3.6/14.6 GB
+[07:24:44 | +3h08m] INFO     ── epoch 3/3 done in 3.3 min | train loss 0.8113 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5486
+[07:24:46 | +3h08m] INFO     EMA check on holdout subsample: raw-weights F1=0.5486 | EMA-weights F1=0.5510 (EMA weights are used)
+[07:24:52 | +3h08m] INFO  FOLD 5/5 RESULT: holdout Macro-F1=0.5528 (Explicit 0.663, Subtly T 0.508, Non-toxi 0.487) | 10.4 min | stage ETA ≈ 0 min | time left 5.19h
+[07:24:52 | +3h08m] INFO  MuRIL-base-cased — full OOF over 47,737 rows: Macro-F1 = 0.5506 | accuracy = 0.5777
+[07:24:52 | +3h08m] INFO     per-class F1: Explicitly Toxic=0.6657 | Subtly Toxic=0.5041 | Non-toxic/Neutral=0.4819
+[07:24:52 | +3h08m] INFO     confusion (rows=true, cols=pred): Explicit:[15120, 6818, 1767] || Subtly T:[5932, 9009, 3195] || Non-toxi:[668, 1781, 3447]
+[07:24:52 | +3h08m] INFO  ========================================================================================
+[07:24:52 | +3h08m] INFO  STAGE — mDeBERTa-v3-base (microsoft/mdeberta-v3-base)
+[07:24:52 | +3h08m] INFO  ========================================================================================
+[07:24:52 | +3h08m] INFO  hyper-parameters: {"n_folds": 5, "epochs": 3, "batch_size": 32, "grad_accum": 1, "eval_bs": 128, "max_len": 128, "lr": 3e-05, "llrd": 0.9, "head_lr_mult": 2.0, "weight_decay": 0.01, "warmup_frac": 0.08, "label_smoothing": 0.05, "ema_decay": 0.999, "fgm": false, "fp16": true, "noise_aware": true, "probe": true, "est_min_per_fold": 18}
+[07:24:52 | +3h08m] INFO     time check: 5 folds ≈ 1.50h (estimate) vs 5.19h available
+[07:24:52 | +3h08m] INFO  using 5-fold CV (column fold5)
+[07:25:01 | +3h08m] INFO  tokenized: mean length 23.7 tokens | p99 102 | truncated at 128: 0.48% of rows | vocab=250,102
+[07:25:01 | +3h08m] INFO  stability probe for mDeBERTa-v3-base (30 fp16 steps)…
+[07:25:31 | +3h09m] INFO  probe passed
+[07:25:31 | +3h09m] INFO  noise weights from 2 complete OOF model(s): 1257 rows (2.6%) down-weighted to 0.3
+[07:25:31 | +3h09m] INFO     flagged rows by given label: {'Explicitly Toxic': 539, 'Subtly Toxic': 630, 'Non-toxic/Neutral': 88}
+[07:25:31 | +3h09m] INFO     e.g. label='Explicitly Toxic' model says 'Non-toxic/Neutral' (0.98): 'Awesome! The absolute truth!'
+[07:25:31 | +3h09m] INFO     e.g. label='Explicitly Toxic' model says 'Non-toxic/Neutral' (0.98): 'No one owes anyone an explanation of their grief. Respect her boundaries.'
+[07:25:31 | +3h09m] INFO     e.g. label='Explicitly Toxic' model says 'Non-toxic/Neutral' (0.98): 'performing the best act of her life'
+[07:25:31 | +3h09m] INFO     e.g. label='Explicitly Toxic' model says 'Non-toxic/Neutral' (0.96): "Let's be clear: this is a Department of War, not a Department of Defense. The difference i"
+[07:25:31 | +3h09m] INFO     e.g. label='Explicitly Toxic' model says 'Non-toxic/Neutral' (0.97): 'Tool fans know her real inspiration for this'
+[07:25:31 | +3h09m] INFO     e.g. label='Explicitly Toxic' model says 'Non-toxic/Neutral' (0.97): 'Love & so Proud of my beautiful 💩 🇭🇹 sirrrr … #Free🇭🇹'
+[07:25:34 | +3h09m] INFO  PARAMS  mDeBERTa-v3-base     total=   278.8M | trainable=   278.8M | token-embeddings=  192.8M | transformer-layers=   85.5M | head=  0.59M
+[07:25:34 | +3h09m] INFO  LLRD: 14 distinct learning rates from 8.47e-06 (embeddings) to 6.00e-05 (head) | top-layer lr=3.00e-05
+[07:25:34 | +3h09m] INFO  fold 1/5: train rows=38,189 | holdout rows=9,548 | micro-batch=32 x accum=1 (effective 32) | optimizer steps=3,582 (warmup 286) | fp16=True | EMA=0.999 | FGM=False | seed=42
+[07:26:22 | +3h09m] INFO     ep 1/3 step 199/1194 | loss 1.1107 | grad-norm 6.91 | lr(top) 4.20e-05 | 132 samples/s | GPU 4.2/14.6 GB
+[07:27:10 | +3h10m] INFO     ep 1/3 step 398/1194 | loss 1.0561 | grad-norm 5.65 | lr(top) 5.80e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[07:27:57 | +3h11m] INFO     ep 1/3 step 597/1194 | loss 1.0267 | grad-norm 4.04 | lr(top) 5.43e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[07:28:45 | +3h12m] INFO     ep 1/3 step 796/1194 | loss 1.0089 | grad-norm 7.50 | lr(top) 5.07e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[07:29:33 | +3h13m] INFO     ep 1/3 step 995/1194 | loss 0.9953 | grad-norm 5.00 | lr(top) 4.71e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[07:30:21 | +3h13m] INFO     ep 1/3 step 1194/1194 | loss 0.9852 | grad-norm 4.91 | lr(top) 4.35e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[07:30:23 | +3h13m] INFO     ── epoch 1/3 done in 4.8 min | train loss 0.9852 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5066
+[07:31:11 | +3h14m] INFO     ep 2/3 step 199/1194 | loss 0.8890 | grad-norm 11.61 | lr(top) 3.98e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[07:31:59 | +3h15m] INFO     ep 2/3 step 398/1194 | loss 0.8867 | grad-norm 5.10 | lr(top) 3.62e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[07:32:47 | +3h16m] INFO     ep 2/3 step 597/1194 | loss 0.8845 | grad-norm 5.19 | lr(top) 3.26e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[07:33:35 | +3h17m] INFO     ep 2/3 step 796/1194 | loss 0.8808 | grad-norm 9.32 | lr(top) 2.90e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[07:34:22 | +3h17m] INFO     ep 2/3 step 995/1194 | loss 0.8787 | grad-norm 7.53 | lr(top) 2.54e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[07:35:10 | +3h18m] INFO     ep 2/3 step 1194/1194 | loss 0.8746 | grad-norm 5.30 | lr(top) 2.17e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[07:35:12 | +3h18m] INFO     ── epoch 2/3 done in 4.8 min | train loss 0.8746 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5552
+[07:36:00 | +3h19m] INFO     ep 3/3 step 199/1194 | loss 0.7966 | grad-norm 6.63 | lr(top) 1.81e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[07:36:48 | +3h20m] INFO     ep 3/3 step 398/1194 | loss 0.8055 | grad-norm 7.77 | lr(top) 1.45e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[07:37:35 | +3h21m] INFO     ep 3/3 step 597/1194 | loss 0.8092 | grad-norm 11.40 | lr(top) 1.09e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[07:38:23 | +3h21m] INFO     ep 3/3 step 796/1194 | loss 0.8045 | grad-norm 11.20 | lr(top) 7.25e-06 | 134 samples/s | GPU 4.2/14.6 GB
+[07:39:11 | +3h22m] INFO     ep 3/3 step 995/1194 | loss 0.8069 | grad-norm 7.01 | lr(top) 3.62e-06 | 134 samples/s | GPU 4.2/14.6 GB
+[07:39:59 | +3h23m] INFO     ep 3/3 step 1194/1194 | loss 0.8047 | grad-norm 10.43 | lr(top) 0.00e+00 | 133 samples/s | GPU 4.2/14.6 GB
+[07:40:01 | +3h23m] INFO     ── epoch 3/3 done in 4.8 min | train loss 0.8047 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5698
+[07:40:06 | +3h23m] INFO     EMA check on holdout subsample: raw-weights F1=0.5698 | EMA-weights F1=0.5706 (EMA weights are used)
+[07:40:23 | +3h23m] INFO  FOLD 1/5 RESULT: holdout Macro-F1=0.5682 (Explicit 0.695, Subtly T 0.505, Non-toxi 0.505) | 14.8 min | stage ETA ≈ 59 min | time left 4.93h
+[07:40:25 | +3h23m] INFO  fold 2/5: train rows=38,189 | holdout rows=9,548 | micro-batch=32 x accum=1 (effective 32) | optimizer steps=3,582 (warmup 286) | fp16=True | EMA=0.999 | FGM=False | seed=43
+[07:41:12 | +3h24m] INFO     ep 1/3 step 199/1194 | loss 1.1079 | grad-norm 7.14 | lr(top) 4.20e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[07:42:00 | +3h25m] INFO     ep 1/3 step 398/1194 | loss 1.0651 | grad-norm 7.19 | lr(top) 5.80e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[07:42:48 | +3h26m] INFO     ep 1/3 step 597/1194 | loss 1.0361 | grad-norm 3.81 | lr(top) 5.43e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[07:43:35 | +3h27m] INFO     ep 1/3 step 796/1194 | loss 1.0181 | grad-norm 14.14 | lr(top) 5.07e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[07:44:23 | +3h27m] INFO     ep 1/3 step 995/1194 | loss 1.0047 | grad-norm 4.92 | lr(top) 4.71e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[07:45:11 | +3h28m] INFO     ep 1/3 step 1194/1194 | loss 0.9949 | grad-norm 5.44 | lr(top) 4.35e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[07:45:14 | +3h28m] INFO     ── epoch 1/3 done in 4.8 min | train loss 0.9949 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5259
+[07:46:02 | +3h29m] INFO     ep 2/3 step 199/1194 | loss 0.8913 | grad-norm 4.19 | lr(top) 3.98e-05 | 132 samples/s | GPU 4.2/14.6 GB
+[07:46:49 | +3h30m] INFO     ep 2/3 step 398/1194 | loss 0.8843 | grad-norm 5.02 | lr(top) 3.62e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[07:47:37 | +3h31m] INFO     ep 2/3 step 597/1194 | loss 0.8885 | grad-norm 6.68 | lr(top) 3.26e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[07:48:25 | +3h31m] INFO     ep 2/3 step 796/1194 | loss 0.8883 | grad-norm 10.12 | lr(top) 2.90e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[07:49:12 | +3h32m] INFO     ep 2/3 step 995/1194 | loss 0.8837 | grad-norm 5.36 | lr(top) 2.54e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[07:49:59 | +3h33m] INFO     ep 2/3 step 1194/1194 | loss 0.8819 | grad-norm 3.52 | lr(top) 2.17e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[07:50:02 | +3h33m] INFO     ── epoch 2/3 done in 4.8 min | train loss 0.8819 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5332
+[07:50:49 | +3h34m] INFO     ep 3/3 step 199/1194 | loss 0.8252 | grad-norm 12.93 | lr(top) 1.81e-05 | 135 samples/s | GPU 4.2/14.6 GB
+[07:51:36 | +3h35m] INFO     ep 3/3 step 398/1194 | loss 0.8233 | grad-norm 10.50 | lr(top) 1.45e-05 | 135 samples/s | GPU 4.2/14.6 GB
+[07:52:23 | +3h35m] INFO     ep 3/3 step 597/1194 | loss 0.8185 | grad-norm 5.32 | lr(top) 1.09e-05 | 135 samples/s | GPU 4.2/14.6 GB
+[07:53:11 | +3h36m] INFO     ep 3/3 step 796/1194 | loss 0.8182 | grad-norm 9.30 | lr(top) 7.25e-06 | 135 samples/s | GPU 4.2/14.6 GB
+[07:53:59 | +3h37m] INFO     ep 3/3 step 995/1194 | loss 0.8163 | grad-norm 21.57 | lr(top) 3.62e-06 | 134 samples/s | GPU 4.2/14.6 GB
+[07:54:47 | +3h38m] INFO     ep 3/3 step 1194/1194 | loss 0.8155 | grad-norm 8.55 | lr(top) 0.00e+00 | 134 samples/s | GPU 4.2/14.6 GB
+[07:54:50 | +3h38m] INFO     ── epoch 3/3 done in 4.8 min | train loss 0.8155 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5476
+[07:54:54 | +3h38m] INFO     EMA check on holdout subsample: raw-weights F1=0.5476 | EMA-weights F1=0.5438 (EMA weights are used)
+[07:55:11 | +3h38m] INFO  FOLD 2/5 RESULT: holdout Macro-F1=0.5614 (Explicit 0.677, Subtly T 0.515, Non-toxi 0.493) | 14.8 min | stage ETA ≈ 44 min | time left 4.69h
+[07:55:14 | +3h38m] INFO  fold 3/5: train rows=38,190 | holdout rows=9,547 | micro-batch=32 x accum=1 (effective 32) | optimizer steps=3,582 (warmup 286) | fp16=True | EMA=0.999 | FGM=False | seed=44
+[07:56:01 | +3h39m] INFO     ep 1/3 step 199/1194 | loss 1.1011 | grad-norm 4.84 | lr(top) 4.20e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[07:56:50 | +3h40m] INFO     ep 1/3 step 398/1194 | loss 1.0591 | grad-norm 8.09 | lr(top) 5.80e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[07:57:37 | +3h41m] INFO     ep 1/3 step 597/1194 | loss 1.0328 | grad-norm 6.44 | lr(top) 5.43e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[07:58:24 | +3h41m] INFO     ep 1/3 step 796/1194 | loss 1.0137 | grad-norm 6.35 | lr(top) 5.07e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[07:59:12 | +3h42m] INFO     ep 1/3 step 995/1194 | loss 1.0007 | grad-norm 11.84 | lr(top) 4.71e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[08:00:00 | +3h43m] INFO     ep 1/3 step 1194/1194 | loss 0.9901 | grad-norm 5.42 | lr(top) 4.35e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[08:00:02 | +3h43m] INFO     ── epoch 1/3 done in 4.8 min | train loss 0.9901 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.4950
+[08:00:49 | +3h44m] INFO     ep 2/3 step 199/1194 | loss 0.8888 | grad-norm 6.55 | lr(top) 3.98e-05 | 137 samples/s | GPU 4.2/14.6 GB
+[08:01:37 | +3h45m] INFO     ep 2/3 step 398/1194 | loss 0.8855 | grad-norm 6.34 | lr(top) 3.62e-05 | 135 samples/s | GPU 4.2/14.6 GB
+[08:02:24 | +3h45m] INFO     ep 2/3 step 597/1194 | loss 0.8846 | grad-norm 8.73 | lr(top) 3.26e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[08:03:12 | +3h46m] INFO     ep 2/3 step 796/1194 | loss 0.8831 | grad-norm 8.01 | lr(top) 2.90e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[08:04:00 | +3h47m] INFO     ep 2/3 step 995/1194 | loss 0.8803 | grad-norm 6.32 | lr(top) 2.54e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[08:04:49 | +3h48m] INFO     ep 2/3 step 1194/1194 | loss 0.8778 | grad-norm 9.08 | lr(top) 2.17e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[08:04:51 | +3h48m] INFO     ── epoch 2/3 done in 4.8 min | train loss 0.8778 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5442
+[08:05:39 | +3h49m] INFO     ep 3/3 step 199/1194 | loss 0.8149 | grad-norm 6.09 | lr(top) 1.81e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[08:06:27 | +3h49m] INFO     ep 3/3 step 398/1194 | loss 0.8129 | grad-norm 14.30 | lr(top) 1.45e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[08:07:15 | +3h50m] INFO     ep 3/3 step 597/1194 | loss 0.8103 | grad-norm 4.73 | lr(top) 1.09e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[08:08:02 | +3h51m] INFO     ep 3/3 step 796/1194 | loss 0.8099 | grad-norm 9.66 | lr(top) 7.25e-06 | 133 samples/s | GPU 4.2/14.6 GB
+[08:08:50 | +3h52m] INFO     ep 3/3 step 995/1194 | loss 0.8082 | grad-norm 9.38 | lr(top) 3.62e-06 | 133 samples/s | GPU 4.2/14.6 GB
+[08:09:39 | +3h53m] INFO     ep 3/3 step 1194/1194 | loss 0.8069 | grad-norm 6.56 | lr(top) 0.00e+00 | 133 samples/s | GPU 4.2/14.6 GB
+[08:09:41 | +3h53m] INFO     ── epoch 3/3 done in 4.8 min | train loss 0.8069 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5473
+[08:09:46 | +3h53m] INFO     EMA check on holdout subsample: raw-weights F1=0.5473 | EMA-weights F1=0.5510 (EMA weights are used)
+[08:10:02 | +3h53m] INFO  FOLD 3/5 RESULT: holdout Macro-F1=0.5574 (Explicit 0.682, Subtly T 0.499, Non-toxi 0.492) | 14.8 min | stage ETA ≈ 30 min | time left 4.44h
+[08:10:04 | +3h53m] INFO  fold 4/5: train rows=38,190 | holdout rows=9,547 | micro-batch=32 x accum=1 (effective 32) | optimizer steps=3,582 (warmup 286) | fp16=True | EMA=0.999 | FGM=False | seed=45
+[08:10:52 | +3h54m] INFO     ep 1/3 step 199/1194 | loss 1.1086 | grad-norm 4.70 | lr(top) 4.20e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[08:11:40 | +3h55m] INFO     ep 1/3 step 398/1194 | loss 1.0613 | grad-norm 6.67 | lr(top) 5.80e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[08:12:28 | +3h56m] INFO     ep 1/3 step 597/1194 | loss 1.0343 | grad-norm 7.48 | lr(top) 5.43e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[08:13:16 | +3h56m] INFO     ep 1/3 step 796/1194 | loss 1.0158 | grad-norm 6.68 | lr(top) 5.07e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[08:14:03 | +3h57m] INFO     ep 1/3 step 995/1194 | loss 1.0043 | grad-norm 4.41 | lr(top) 4.71e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[08:14:52 | +3h58m] INFO     ep 1/3 step 1194/1194 | loss 0.9950 | grad-norm 3.91 | lr(top) 4.35e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[08:14:54 | +3h58m] INFO     ── epoch 1/3 done in 4.8 min | train loss 0.9950 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5595
+[08:15:42 | +3h59m] INFO     ep 2/3 step 199/1194 | loss 0.8819 | grad-norm 7.19 | lr(top) 3.98e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[08:16:30 | +4h00m] INFO     ep 2/3 step 398/1194 | loss 0.8859 | grad-norm 9.91 | lr(top) 3.62e-05 | 132 samples/s | GPU 4.2/14.6 GB
+[08:17:19 | +4h00m] INFO     ep 2/3 step 597/1194 | loss 0.8907 | grad-norm 7.06 | lr(top) 3.26e-05 | 132 samples/s | GPU 4.2/14.6 GB
+[08:18:07 | +4h01m] INFO     ep 2/3 step 796/1194 | loss 0.8871 | grad-norm 10.06 | lr(top) 2.90e-05 | 132 samples/s | GPU 4.2/14.6 GB
+[08:18:55 | +4h02m] INFO     ep 2/3 step 995/1194 | loss 0.8853 | grad-norm 7.26 | lr(top) 2.54e-05 | 132 samples/s | GPU 4.2/14.6 GB
+[08:19:43 | +4h03m] INFO     ep 2/3 step 1194/1194 | loss 0.8837 | grad-norm 3.75 | lr(top) 2.17e-05 | 132 samples/s | GPU 4.2/14.6 GB
+[08:19:46 | +4h03m] INFO     ── epoch 2/3 done in 4.9 min | train loss 0.8837 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5834
+[08:20:34 | +4h04m] INFO     ep 3/3 step 199/1194 | loss 0.8179 | grad-norm 12.87 | lr(top) 1.81e-05 | 131 samples/s | GPU 4.2/14.6 GB
+[08:21:22 | +4h04m] INFO     ep 3/3 step 398/1194 | loss 0.8129 | grad-norm 10.34 | lr(top) 1.45e-05 | 132 samples/s | GPU 4.2/14.6 GB
+[08:22:10 | +4h05m] INFO     ep 3/3 step 597/1194 | loss 0.8126 | grad-norm 6.95 | lr(top) 1.09e-05 | 132 samples/s | GPU 4.2/14.6 GB
+[08:22:57 | +4h06m] INFO     ep 3/3 step 796/1194 | loss 0.8126 | grad-norm 8.21 | lr(top) 7.25e-06 | 133 samples/s | GPU 4.2/14.6 GB
+[08:23:45 | +4h07m] INFO     ep 3/3 step 995/1194 | loss 0.8126 | grad-norm 6.86 | lr(top) 3.62e-06 | 133 samples/s | GPU 4.2/14.6 GB
+[08:24:32 | +4h08m] INFO     ep 3/3 step 1194/1194 | loss 0.8130 | grad-norm 5.33 | lr(top) 0.00e+00 | 133 samples/s | GPU 4.2/14.6 GB
+[08:24:34 | +4h08m] INFO     ── epoch 3/3 done in 4.8 min | train loss 0.8130 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5721
+[08:24:39 | +4h08m] INFO     EMA check on holdout subsample: raw-weights F1=0.5721 | EMA-weights F1=0.5774 (EMA weights are used)
+[08:24:56 | +4h08m] INFO  FOLD 4/5 RESULT: holdout Macro-F1=0.5632 (Explicit 0.681, Subtly T 0.495, Non-toxi 0.514) | 14.8 min | stage ETA ≈ 15 min | time left 4.19h
+[08:24:57 | +4h08m] INFO  fold 5/5: train rows=38,190 | holdout rows=9,547 | micro-batch=32 x accum=1 (effective 32) | optimizer steps=3,582 (warmup 286) | fp16=True | EMA=0.999 | FGM=False | seed=46
+[08:25:46 | +4h09m] INFO     ep 1/3 step 199/1194 | loss 1.1119 | grad-norm 4.46 | lr(top) 4.20e-05 | 132 samples/s | GPU 4.2/14.6 GB
+[08:26:33 | +4h10m] INFO     ep 1/3 step 398/1194 | loss 1.0709 | grad-norm 9.82 | lr(top) 5.80e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[08:27:20 | +4h10m] INFO     ep 1/3 step 597/1194 | loss 1.0466 | grad-norm 7.44 | lr(top) 5.43e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[08:28:07 | +4h11m] INFO     ep 1/3 step 796/1194 | loss 1.0253 | grad-norm 8.27 | lr(top) 5.07e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[08:28:55 | +4h12m] INFO     ep 1/3 step 995/1194 | loss 1.0109 | grad-norm 6.15 | lr(top) 4.71e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[08:29:42 | +4h13m] INFO     ep 1/3 step 1194/1194 | loss 0.9982 | grad-norm 4.42 | lr(top) 4.35e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[08:29:45 | +4h13m] INFO     ── epoch 1/3 done in 4.8 min | train loss 0.9982 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5351
+[08:30:32 | +4h14m] INFO     ep 2/3 step 199/1194 | loss 0.8964 | grad-norm 5.30 | lr(top) 3.98e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[08:31:20 | +4h14m] INFO     ep 2/3 step 398/1194 | loss 0.8871 | grad-norm 7.78 | lr(top) 3.62e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[08:32:07 | +4h15m] INFO     ep 2/3 step 597/1194 | loss 0.8868 | grad-norm 6.87 | lr(top) 3.26e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[08:32:55 | +4h16m] INFO     ep 2/3 step 796/1194 | loss 0.8813 | grad-norm 5.07 | lr(top) 2.90e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[08:33:42 | +4h17m] INFO     ep 2/3 step 995/1194 | loss 0.8812 | grad-norm 7.12 | lr(top) 2.54e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[08:34:30 | +4h18m] INFO     ep 2/3 step 1194/1194 | loss 0.8781 | grad-norm 6.50 | lr(top) 2.17e-05 | 134 samples/s | GPU 4.2/14.6 GB
+[08:34:33 | +4h18m] INFO     ── epoch 2/3 done in 4.8 min | train loss 0.8781 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5537
+[08:35:20 | +4h18m] INFO     ep 3/3 step 199/1194 | loss 0.8147 | grad-norm 7.32 | lr(top) 1.81e-05 | 135 samples/s | GPU 4.2/14.6 GB
+[08:36:08 | +4h19m] INFO     ep 3/3 step 398/1194 | loss 0.8154 | grad-norm 6.15 | lr(top) 1.45e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[08:36:57 | +4h20m] INFO     ep 3/3 step 597/1194 | loss 0.8146 | grad-norm 4.64 | lr(top) 1.09e-05 | 133 samples/s | GPU 4.2/14.6 GB
+[08:37:45 | +4h21m] INFO     ep 3/3 step 796/1194 | loss 0.8139 | grad-norm 11.02 | lr(top) 7.25e-06 | 133 samples/s | GPU 4.2/14.6 GB
+[08:38:32 | +4h22m] INFO     ep 3/3 step 995/1194 | loss 0.8120 | grad-norm 15.65 | lr(top) 3.62e-06 | 133 samples/s | GPU 4.2/14.6 GB
+[08:39:20 | +4h22m] INFO     ep 3/3 step 1194/1194 | loss 0.8101 | grad-norm 6.88 | lr(top) 0.00e+00 | 133 samples/s | GPU 4.2/14.6 GB
+[08:39:23 | +4h22m] INFO     ── epoch 3/3 done in 4.8 min | train loss 0.8101 | holdout-subsample (3000 rows, raw weights) Macro-F1 = 0.5659
+[08:39:28 | +4h23m] INFO     EMA check on holdout subsample: raw-weights F1=0.5659 | EMA-weights F1=0.5632 (EMA weights are used)
+[08:39:44 | +4h23m] INFO  FOLD 5/5 RESULT: holdout Macro-F1=0.5639 (Explicit 0.688, Subtly T 0.498, Non-toxi 0.506) | 14.8 min | stage ETA ≈ 0 min | time left 3.95h
+[08:39:44 | +4h23m] INFO  mDeBERTa-v3-base — full OOF over 47,737 rows: Macro-F1 = 0.5629 | accuracy = 0.5918
+[08:39:44 | +4h23m] INFO     per-class F1: Explicitly Toxic=0.6844 | Subtly Toxic=0.5022 | Non-toxic/Neutral=0.5021
+[08:39:44 | +4h23m] INFO     confusion (rows=true, cols=pred): Explicit:[16064, 5931, 1710] || Subtly T:[6444, 8600, 3092] || Non-toxi:[727, 1583, 3586]
+[08:39:45 | +4h23m] INFO  ========================================================================================
+[08:39:45 | +4h23m] INFO  FINAL — stacking, thresholds, submissions
+[08:39:45 | +4h23m] INFO  ========================================================================================
+[08:39:45 | +4h23m] INFO  models in the stack: svm, xlmr_large, muril, mdeberta
+[08:39:46 | +4h23m] INFO  blend weights (grid search on OOF): {'svm': 0.5, 'xlmr_large': 0.3, 'muril': 0.1, 'mdeberta': 0.1}
+[08:39:46 | +4h23m] INFO  stacker input: 24 features = 4 models x 3 log-probs + 12 meta-features
+[08:39:49 | +4h23m] INFO     LogReg C=0.03: CV Macro-F1=0.5758
+[08:39:53 | +4h23m] INFO     LogReg C=0.1: CV Macro-F1=0.5755
+[08:39:56 | +4h23m] INFO     LogReg C=0.3: CV Macro-F1=0.5754
+[08:39:59 | +4h23m] INFO     LogReg C=1.0: CV Macro-F1=0.5755
+[08:40:08 | +4h23m] INFO     HistGradientBoosting: CV Macro-F1=0.5751
+[08:40:19 | +4h23m] INFO  weighted blend   raw OOF F1=0.5963 | + thresholds (nested-CV honest estimate)=0.6006
+[08:40:30 | +4h24m] INFO  stack_logreg     raw OOF F1=0.5758 | + thresholds (nested-CV honest estimate)=0.6014
+[08:40:41 | +4h24m] INFO  stack_hgb        raw OOF F1=0.5751 | + thresholds (nested-CV honest estimate)=0.6037
+[08:40:52 | +4h24m] INFO  stack_avg        raw OOF F1=0.5763 | + thresholds (nested-CV honest estimate)=0.6028
+[08:40:52 | +4h24m] INFO  best stacker by nested estimate: stack_hgb
+[08:40:58 | +4h24m] INFO  tuned + PERSISTED thresholds 'A_stack_hgb_svm+xlmr_large+muril+mdeberta': [1.0, 0.97, 0.487] (in-sample F1 0.6040)
+[08:41:00 | +4h24m] INFO  tuned + PERSISTED thresholds 'B_blend_svm+xlmr_large+muril+mdeberta': [1.0, 1.221, 1.03] (in-sample F1 0.6009)
+[08:41:00 | +4h24m] INFO  submission A on OOF with the saved thresholds (in-sample, slightly optimistic): Macro-F1 = 0.6040
+[08:41:00 | +4h24m] INFO  wrote submission_A_stack_thresholds.csv | predicted mix: Explicit=0.479 | Subtly T=0.418 | Non-toxi=0.103 | train prior: 0.497 | 0.380 | 0.124
+[08:41:00 | +4h24m] INFO  wrote submission_B_blend_thresholds.csv | predicted mix: Explicit=0.459 | Subtly T=0.432 | Non-toxi=0.108 | train prior: 0.497 | 0.380 | 0.124
+[08:41:00 | +4h24m] WARN  sample_submission.csv not found — format check skipped
+[08:41:00 | +4h24m] INFO  
+RESULTS TABLE (OOF over all labeled rows)
+         model  OOF Macro-F1
+           svm        0.5116
+    xlmr_large        0.5730
+         muril        0.5506
+      mdeberta        0.5629
+    mean blend        0.5898
+weighted blend        0.5963
+  stack_logreg        0.5758
+     stack_hgb        0.5751
+     stack_avg        0.5763
+[08:41:00 | +4h24m] INFO  HEADLINE (nested-CV honest estimates): A = 0.6037 | B = 0.6006
+[08:41:00 | +4h24m] INFO  METHODOLOGY
+                            component                                                                architecture                                               params                folds                                                                                                                                  hyperparams
+TF-IDF + LinearSVC (Platt-calibrated)                word 1-2g + char_wb 3-5g TF-IDF (≤120,000 feats), linear SVM                   ≈0.4M weights x3 calibrated copies                    5                                                                                       C=0.1, class_weight=balanced, sigmoid calibration cv=3
+                    XLM-RoBERTa-large                                     xlm-roberta-large + classification head 560M total (256M embeddings, 303M layers, 1.1M head)                    4 epochs=4, batch=16x2, max_len=128, lr(top)=2e-05, LLRD=0.95, head_lr x2.0, wd=0.01, warmup=0.08, label_smoothing=0.05, EMA=None, fp16=Tru...
+                     MuRIL-base-cased                               google/muril-base-cased + classification head  238M total (152M embeddings, 85M layers, 0.6M head)                    5 epochs=3, batch=32x1, max_len=128, lr(top)=3e-05, LLRD=0.9, head_lr x2.0, wd=0.01, warmup=0.08, label_smoothing=0.05, EMA=0.999, fp16=Tru...
+                     mDeBERTa-v3-base                            microsoft/mdeberta-v3-base + classification head  279M total (193M embeddings, 85M layers, 0.6M head)                    5 epochs=3, batch=32x1, max_len=128, lr(top)=3e-05, LLRD=0.9, head_lr x2.0, wd=0.01, warmup=0.08, label_smoothing=0.05, EMA=0.999, fp16=Tru...
+                              Stacker multinomial LogReg / HistGradientBoosting on log-probs + text meta-features       a few hundred coefficients / 250 depth-3 trees 5 (CV over OOF rows)                                                                    best=stack_hgb, per-class thresholds by grid search (nested-CV validated)
+[08:41:00 | +4h24m] INFO  ========================================================================================
+[08:41:00 | +4h24m] INFO  DONE in 4.41h — submit  submission_A_stack_thresholds.csv  and  submission_B_blend_thresholds.csv  (folder: /content/datathon_run/submissions)
+[08:41:00 | +4h24m] INFO  ========================================================================================

@@ -1,0 +1,11 @@
+# Tested on Google Colab (Python 3.12, Tesla T4). Colab already provides most of these.
+torch>=2.1            # run used torch 2.11.0+cu128
+transformers>=4.40    # recent 4.x / 5.x
+tokenizers
+sentencepiece
+protobuf
+numpy
+pandas
+scipy
+scikit-learn>=1.3
+tabulate              # optional: only for the METHODOLOGY.md table
